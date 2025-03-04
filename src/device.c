@@ -535,10 +535,8 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 	bool a_sec_on = false;
 	int ret = 0;
 
-	if (!asc->advanced_security_enabled) {
-		wg_device_rollback(dev);
+	if (!asc->advanced_security_enabled)
 		goto out;
-	}
 
 	if (asc->junk_packet_count < 0) {
 		net_info_ratelimited("%s: JunkPacketCount should be non negative\n", dev->name);
