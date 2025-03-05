@@ -30,9 +30,6 @@ static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 {
 	struct message_handshake_initiation packet;
 	struct wg_device *wg = peer->device;
-	void *buffer;
-	u8 ds;
-	u16 junk_packet_count, junk_packet_size;
 
 	if (!wg_birthdate_has_expired(atomic64_read(&peer->last_sent_handshake),
 				      REKEY_TIMEOUT))
@@ -49,15 +46,17 @@ static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 	}
 
 	if (wg->advanced_security_config.advanced_security_enabled) {
-		junk_packet_count = wg->advanced_security_config.junk_packet_count;
-		buffer = kzalloc(wg->advanced_security_config.junk_packet_max_size, GFP_KERNEL);
+		u16 junk_packet_count = wg->advanced_security_config.junk_packet_count;
+		void *buffer = kzalloc(wg->advanced_security_config.junk_packet_max_size, GFP_KERNEL);
 
 		net_dbg_ratelimited("%s: Sending %d junk packets to peer %llu (%pISpfsc)\n",
 		                    peer->device->dev->name, junk_packet_count, peer->internal_id,
 		                    &peer->endpoint.addr);
 
-		while (junk_packet_count-- > 0) {
-			junk_packet_size = (u16) wg_get_random_u32_inclusive(
+		while (buffer != NULL && junk_packet_count-- > 0) {
+			u8 ds;
+
+			u16 junk_packet_size = (u16) wg_get_random_u32_inclusive(
 					wg->advanced_security_config.junk_packet_min_size,
 					wg->advanced_security_config.junk_packet_max_size);
 
