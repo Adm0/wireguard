@@ -9,8 +9,9 @@ ccflags-y += -Wframe-larger-than=2048
 ccflags-$(if $(WIREGUARD_VERSION),y,) += -D'WIREGUARD_VERSION="$(WIREGUARD_VERSION)"'
 
 wireguard-y := main.o noise.o device.o peer.o timers.o queueing.o send.o receive.o socket.o peerlookup.o allowedips.o ratelimiter.o cookie.o netlink.o
+xt_WGOBFS-y := obfs/chacha.o obfs/xt_WGOBFS_main.o
 
 include $(src)/crypto/Kbuild.include
 include $(src)/compat/Kbuild.include
 
-obj-$(if $(KBUILD_EXTMOD),m,$(CONFIG_WIREGUARD)) := wireguard.o
+obj-$(if $(KBUILD_EXTMOD),m,$(CONFIG_WIREGUARD)) := wireguard.o xt_WGOBFS.o
