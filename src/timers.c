@@ -100,9 +100,12 @@ static void wg_expired_new_handshake(struct timer_list *timer)
 {
 	struct wg_peer *peer = from_timer(peer, timer, timer_new_handshake);
 
-	net_info_peer_ratelimited("%s: retrying handshake with peer \"%s\" (%llu) (%pISpfsc) because we stopped hearing back after %lu seconds\n",
-		 peer, peer->internal_id,
-		 &peer->endpoint.addr, KEEPALIVE_TIMEOUT + REKEY_TIMEOUT);
+	if (peer->device->debug) {
+		net_info_peer_ratelimited("%s: retrying handshake with peer \"%s\" (%llu) (%pISpfsc) because we stopped hearing back after %lu seconds\n",
+			 peer, peer->internal_id,
+			 &peer->endpoint.addr, KEEPALIVE_TIMEOUT + REKEY_TIMEOUT);
+	}
+
 	/* We clear the endpoint address src address, in case this is the cause
 	 * of trouble.
 	 */

@@ -190,38 +190,32 @@ int wg_socket_send_skb_to_peer(struct wg_peer *peer, struct sk_buff *skb, u8 ds)
 }
 
 int wg_socket_send_buffer_to_peer(struct wg_peer *peer, void *buffer,
-				  size_t len, u8 ds)
+				  size_t len, u8 ds, size_t junk_size)
 {
-	struct sk_buff *skb = alloc_skb(len + SKB_HEADER_LEN, GFP_ATOMIC);
+	struct sk_buff *skb = alloc_skb(len + junk_size + SKB_HEADER_LEN, GFP_ATOMIC);
 
 	if (unlikely(!skb))
 		return -ENOMEM;
 
 	skb_reserve(skb, SKB_HEADER_LEN);
 	skb_set_inner_network_header(skb, 0);
-	skb_put_data(skb, buffer, len);
-	return wg_socket_send_skb_to_peer(peer, skb, ds);
-}
 
-int wg_socket_send_junked_buffer_to_peer(struct wg_peer *peer, void *buffer,
-                                          size_t len, u8 ds, u16 junk_size)
-{
-	int ret = -ENOMEM;
-	void *new_buffer = kzalloc(len + junk_size, GFP_KERNEL);
-
-	if (new_buffer != NULL) {
-		get_random_bytes(new_buffer, junk_size);
-		memcpy(new_buffer + junk_size, buffer, len);
-		ret = wg_socket_send_buffer_to_peer(peer, new_buffer, len + junk_size, ds);
-		kfree(new_buffer);
+	if (junk_size > 0) {
+		void* junk = skb_put(skb, junk_size);
+		get_random_bytes(junk, junk_size);
 	}
 
-	return ret;
+	if (skb_put_data(skb, buffer, len) == NULL) {
+		kfree_skb(skb);
+		return -ENOMEM;
+	}
+
+	return wg_socket_send_skb_to_peer(peer, skb, ds);
 }
 
 int wg_socket_send_buffer_as_reply_to_skb(struct wg_device *wg,
 					  struct sk_buff *in_skb, void *buffer,
-					  size_t len)
+					  size_t len, size_t junk_size)
 {
 	int ret = 0;
 	struct sk_buff *skb;
@@ -233,11 +227,17 @@ int wg_socket_send_buffer_as_reply_to_skb(struct wg_device *wg,
 	if (unlikely(ret < 0))
 		return ret;
 
-	skb = alloc_skb(len + SKB_HEADER_LEN, GFP_ATOMIC);
+	skb = alloc_skb(len + junk_size + SKB_HEADER_LEN, GFP_ATOMIC);
 	if (unlikely(!skb))
 		return -ENOMEM;
 	skb_reserve(skb, SKB_HEADER_LEN);
 	skb_set_inner_network_header(skb, 0);
+
+	if (junk_size > 0) {
+		void* junk = skb_put(skb, junk_size);
+		get_random_bytes(junk, junk_size);
+	}
+
 	skb_put_data(skb, buffer, len);
 
 	if (endpoint.addr.sa_family == AF_INET)
