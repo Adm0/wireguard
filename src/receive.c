@@ -150,8 +150,9 @@ static void wg_receive_handshake_packet(struct wg_device *wg,
 	static u64 last_under_load;
 	bool packet_needs_cookie;
 	bool under_load;
+	const __le32 type = SKB_TYPE_LE32(skb, wg);
 
-	if (mh_validate(SKB_TYPE_LE32(skb, wg), &wg->headers[MSGIDX_HANDSHAKE_COOKIE])) {
+	if (mh_validate(type, &wg->headers[MSGIDX_HANDSHAKE_COOKIE])) {
 		net_dbg_skb_ratelimited("%s: Receiving cookie response from %pISpfsc\n",
 					wg->ndm_dev_name, skb);
 		wg_cookie_message_consume(
@@ -181,7 +182,7 @@ static void wg_receive_handshake_packet(struct wg_device *wg,
 		return;
 	}
 
-	if (mh_validate(SKB_TYPE_LE32(skb, wg), &wg->headers[MSGIDX_HANDSHAKE_INIT])) {
+	if (mh_validate(type, &wg->headers[MSGIDX_HANDSHAKE_INIT])) {
 		struct timespec64 ts, last_handshake_ts;
 		struct message_handshake_initiation *message =
 			(struct message_handshake_initiation *)skb->data;
@@ -209,8 +210,8 @@ static void wg_receive_handshake_packet(struct wg_device *wg,
 						&peer->endpoint.addr);
 
 		wg_packet_send_handshake_response(peer);
-	}
-	if (mh_validate(SKB_TYPE_LE32(skb, wg), &wg->headers[MSGIDX_HANDSHAKE_RESPONSE])) {
+	} else
+	if (mh_validate(type, &wg->headers[MSGIDX_HANDSHAKE_RESPONSE])) {
 		struct message_handshake_response *message =
 			(struct message_handshake_response *)skb->data;
 
