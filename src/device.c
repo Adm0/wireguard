@@ -547,6 +547,7 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 	if (asc->junk_packet_count < 0) {
 		net_info_ratelimited("%s: JunkPacketCount should be non negative\n", wg->ndm_dev_name);
 		ret = -EINVAL;
+		goto out;
 	}
 
 	wg->advanced_security_config.junk_packet_count = asc->junk_packet_count;
@@ -568,13 +569,18 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 							wg->ndm_dev_name, asc->junk_packet_max_size,
 							MESSAGE_MAX_SIZE);
 		ret = -EINVAL;
-	} else if (asc->junk_packet_max_size < asc->junk_packet_min_size) {
+		goto out;
+	}
+
+	if (asc->junk_packet_max_size < asc->junk_packet_min_size) {
 		net_info_ratelimited("%s: maxSize: %d; should be greater than minSize: %d\n",
 							wg->ndm_dev_name, asc->junk_packet_max_size,
 							asc->junk_packet_min_size);
 		ret = -EINVAL;
-	} else
-		wg->advanced_security_config.junk_packet_max_size = asc->junk_packet_max_size;
+		goto out;
+	}
+
+	wg->advanced_security_config.junk_packet_max_size = asc->junk_packet_max_size;
 
 	if (asc->junk_packet_max_size != 0)
 		a_sec_on = true;
@@ -582,30 +588,28 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 	if (wg->junk_size[MSGIDX_HANDSHAKE_INIT] + MESSAGE_INITIATION_SIZE > MESSAGE_MAX_SIZE) {
 		net_info_ratelimited("%s: S1 is too large\n", wg->ndm_dev_name);
 		err = -EINVAL;
+		goto out;
 	}
-	else
-		a_sec_on = true;
+
+	a_sec_on = true;
 
 	if (wg->junk_size[MSGIDX_HANDSHAKE_RESPONSE] + MESSAGE_RESPONSE_SIZE > MESSAGE_MAX_SIZE) {
 		net_info_ratelimited("%s: S2 is too large\n", wg->ndm_dev_name);
 		err = -EINVAL;
+		goto out;
 	}
-	else
-		a_sec_on = true;
 
 	if (wg->junk_size[MSGIDX_HANDSHAKE_COOKIE] + MESSAGE_COOKIE_REPLY_SIZE > MESSAGE_MAX_SIZE) {
 		net_info_ratelimited("%s: S3 is too large\n", wg->ndm_dev_name);
 		err = -EINVAL;
+		goto out;
 	}
-	else
-		a_sec_on = true;
 
 	if (wg->junk_size[MSGIDX_TRANSPORT] + MESSAGE_TRANSPORT_SIZE > MESSAGE_MAX_SIZE) {
 		net_info_ratelimited("%s: S4 is too large\n", wg->ndm_dev_name);
 		err = -EINVAL;
+		goto out;
 	}
-	else
-		a_sec_on = true;
 
 	for (i = 0; i < ARRAY_SIZE(wg->headers); ++i) {
 		for (j = i + 1; j < ARRAY_SIZE(wg->headers); ++j) {
@@ -613,8 +617,8 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 				  wg->headers[i].end < wg->headers[j].start)) {
 				net_info_ratelimited("%s: H%d and H%d ranges must not overlap\n", wg->ndm_dev_name, i + 1, j + 1);
 				ret = -EINVAL;
+				goto out;
 			}
-			a_sec_on = true;
 		}
 	}
 
@@ -623,8 +627,8 @@ int wg_device_handle_post_config(struct net_device *dev, struct asc_config *asc)
 		if (err) {
 			net_info_ratelimited("%s: I%d-packet invalid format\n", wg->ndm_dev_name, i + 1);
 			ret = err;
+			goto out;
 		}
-		a_sec_on = true;
 	}
 
 	wg->advanced_security_config.advanced_security = a_sec_on;

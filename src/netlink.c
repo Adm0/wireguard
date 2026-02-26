@@ -609,8 +609,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		asc->advanced_security = true;
 		str = nla_strdup(info->attrs[WGDEVICE_A_H1], GFP_KERNEL);
 
-		if (!str)
+		if (!str) {
+			ret = -ENOMEM;
 			goto out;
+		}
 
 		ret = mh_parse(&wg->headers[MSGIDX_HANDSHAKE_INIT], str);
 		kfree(str);
@@ -622,8 +624,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		asc->advanced_security = true;
 		str = nla_strdup(info->attrs[WGDEVICE_A_H2], GFP_KERNEL);
 
-		if (!str)
+		if (!str) {
+			ret = -ENOMEM;
 			goto out;
+		}
 
 		ret = mh_parse(&wg->headers[MSGIDX_HANDSHAKE_RESPONSE], str);
 		kfree(str);
@@ -635,8 +639,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		asc->advanced_security = true;
 		str = nla_strdup(info->attrs[WGDEVICE_A_H3], GFP_KERNEL);
 
-		if (!str)
+		if (!str) {
+			ret = -ENOMEM;
 			goto out;
+		}
 
 		ret = mh_parse(&wg->headers[MSGIDX_HANDSHAKE_COOKIE], str);
 		kfree(str);
@@ -648,8 +654,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		asc->advanced_security = true;
 		str = nla_strdup(info->attrs[WGDEVICE_A_H4], GFP_KERNEL);
 
-		if (!str)
+		if (!str) {
+			ret = -ENOMEM;
 			goto out;
+		}
 
 		ret = mh_parse(&wg->headers[MSGIDX_TRANSPORT], str);
 		kfree(str);
@@ -672,8 +680,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		jp_spec_free(&wg->ispecs[0]);
 		wg->ispecs[0].desc = nla_strdup(info->attrs[WGDEVICE_A_I1], GFP_KERNEL);
 
-		if (!wg->ispecs[0].desc)
+		if (!wg->ispecs[0].desc) {
+			ret = -ENOMEM;
 			goto out;
+		}
 	}
 
 	if (info->attrs[WGDEVICE_A_I2]) {
@@ -681,8 +691,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		jp_spec_free(&wg->ispecs[1]);
 		wg->ispecs[1].desc = nla_strdup(info->attrs[WGDEVICE_A_I2], GFP_KERNEL);
 
-		if (!wg->ispecs[1].desc)
+		if (!wg->ispecs[1].desc) {
+			ret = -ENOMEM;
 			goto out;
+		}
 	}
 
 	if (info->attrs[WGDEVICE_A_I3]) {
@@ -690,8 +702,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		jp_spec_free(&wg->ispecs[2]);
 		wg->ispecs[2].desc = nla_strdup(info->attrs[WGDEVICE_A_I3], GFP_KERNEL);
 
-		if (!wg->ispecs[2].desc)
+		if (!wg->ispecs[2].desc) {
+			ret = -ENOMEM;
 			goto out;
+		}
 	}
 
 	if (info->attrs[WGDEVICE_A_I4]) {
@@ -699,8 +713,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		jp_spec_free(&wg->ispecs[3]);
 		wg->ispecs[3].desc = nla_strdup(info->attrs[WGDEVICE_A_I4], GFP_KERNEL);
 
-		if (!wg->ispecs[3].desc)
+		if (!wg->ispecs[3].desc) {
+			ret = -ENOMEM;
 			goto out;
+		}
 	}
 
 	if (info->attrs[WGDEVICE_A_I5]) {
@@ -708,8 +724,10 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 		jp_spec_free(&wg->ispecs[4]);
 		wg->ispecs[4].desc = nla_strdup(info->attrs[WGDEVICE_A_I5], GFP_KERNEL);
 
-		if (!wg->ispecs[4].desc)
+		if (!wg->ispecs[4].desc) {
+			ret = -ENOMEM;
 			goto out;
+		}
 	}
 
 	if (flags & WGDEVICE_F_REPLACE_PEERS)
