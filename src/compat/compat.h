@@ -1167,4 +1167,25 @@ static inline void dst_cache_reset_now(struct dst_cache *dst_cache)
 #define from_timer(var, callback_timer, timer_fieldname) container_of((struct timer_list *)callback_timer, typeof(*var), timer_fieldname)
 #endif
 
+static inline char *nla_strdup(const struct nlattr *nla, gfp_t flags)
+{
+	size_t srclen = nla_len(nla);
+	char *src = nla_data(nla), *dst;
+
+	if (srclen > 0 && src[srclen - 1] == '\0')
+		srclen--;
+
+	dst = kmalloc(srclen + 1, flags);
+	if (dst != NULL) {
+		memcpy(dst, src, srclen);
+		dst[srclen] = '\0';
+	}
+	return dst;
+}
+
+static inline u32 get_random_u32_inclusive(u32 floor, u32 ceil)
+{
+	return floor + prandom_u32_max(ceil - floor + 1);
+}
+
 #endif /* _WG_COMPAT_H */

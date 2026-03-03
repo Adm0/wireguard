@@ -6,10 +6,12 @@
 #ifndef _WG_DEVICE_H
 #define _WG_DEVICE_H
 
+#include "junk.h"
 #include "noise.h"
 #include "allowedips.h"
 #include "peerlookup.h"
 #include "cookie.h"
+#include "magic_header.h"
 
 #include <linux/types.h>
 #include <linux/netdevice.h>
@@ -40,16 +42,10 @@ struct prev_queue {
 };
 
 struct asc_config {
-	bool advanced_security_enabled;
+	bool advanced_security;
 	u16 junk_packet_count;
 	u16 junk_packet_min_size;
 	u16 junk_packet_max_size;
-	u16 init_packet_junk_size;
-	u16 response_packet_junk_size;
-	u32 init_packet_magic_header;
-	u32 response_packet_magic_header;
-	u32 cookie_packet_magic_header;
-	u32 transport_packet_magic_header;
 };
 
 struct wg_device {
@@ -73,6 +69,10 @@ struct wg_device {
 	bool have_creating_net_ref;
 	bool debug;
 	char ndm_dev_name[WG_NDM_NAME_SIZE];
+
+	struct jp_spec ispecs[5];
+	struct magic_header headers[4];
+	u16 junk_size[4];
 };
 
 int wg_device_init(void);
